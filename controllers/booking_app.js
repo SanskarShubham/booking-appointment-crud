@@ -1,23 +1,18 @@
-const User = require('../models/user');
+const Appointment = require("../models/appointments");
+const Meeting = require("../models/meetings");
 
+exports.postAddAppointment = (req, res, next) => {
+  const time = req.body.time;
+  const slot = req.body.slot;
 
-exports.postAddUser = (req, res, next) => {
-  const name = req.body.name;
-  const emailAdd = req.body.emailAdd;
-  const phoneNo = req.body.phoneNo;
-  
-
-  // const product = new User(null, name, emailAdd, description, phoneNo);
-  User.create({
-    name: name,
-    emailAdd: emailAdd,
-    phoneNo: phoneNo
-
+  Appointment.create({
+    time: time,
+    slot: slot,
   })
-    .then((users) => {
+    .then((appointments) => {
       return res.status(200).json({
         status: true,
-        data: users,
+        data: appointments,
       });
     })
     .catch((err) => {
@@ -26,31 +21,14 @@ exports.postAddUser = (req, res, next) => {
         error: err,
       });
     });
-
 };
 
 
-exports.postEditUser = (req, res, next) => {
 
-  const id = req.body.id;
-
-  const name = req.body.name;
-  const emailAdd = req.body.emailAdd;
-  const phoneNo = req.body.phoneNo;
-
-  // const product = new User(id, name, emailAdd, description, phoneNo);
-
-  User.update({
-    name: name,
-    emailAdd: emailAdd,
-    phoneNo: phoneNo
-
-  }, { where: { id: id } })
-    .then((users) => {
-      return res.status(200).json({
-        status: true,
-        data: users,
-      });
+exports.getAppointments = (req, res, next) => {
+  Appointment.findAll()
+    .then((appointments) => {
+      return res.status(200).json(appointments);
     })
     .catch((err) => {
       return res.status(500).json({
@@ -58,20 +36,36 @@ exports.postEditUser = (req, res, next) => {
         error: err,
       });
     });
-
 };
 
-exports.postDeleteUser = (req, res, next) => {
-  const id = req.params.userid;
-  console.log(req.params)
-  User.findByPk(id)
-    .then(user => {
-      return user.destroy()
+
+
+exports.postDeleteMeeting = (req, res, next) => {
+  const id = req.params.meetingId;
+  // let appointment;
+  Meeting.findByPk(id)
+    .then(mt => {
+   
+      return mt.destroy()
     })
-    .then((users) => {
+    //----
+    .then((m) => {
+      return Appointment.findByPk(m.appointmentId);
+    })
+    .catch((err) => console.log(err))
+    .then((ap) => {
+      // appointmentData = ap;
+      //  UPDATING THE APPOINTMENT SLOT 
+      return Appointment.update(
+        { slot: ap.slot + 1 },
+        { where: { id: ap.id } }
+      )
+    })
+    .then((mt) => {
+
       return res.status(200).json({
         status: true,
-        data: users,
+        data: mt,
       });
     })
     .catch((err) => {
@@ -83,13 +77,47 @@ exports.postDeleteUser = (req, res, next) => {
     });
 
 };
-exports.getUsers = (req, res, next) => {
-  User.findAll()
-    .then((users) => {
-      return res.status(200).json({
-        status: true,
-        data: users,
-      });
+exports.postAddMeeting = (req, res, next) => {
+  const name = req.body.name;
+  const emailAdd = req.body.emailAdd;
+  const appointId = req.body.appointId;
+  const links = [
+    "https://meet.google.com/eauk-bqqs-put",
+    "https://meet.google.com/dfr-wnvs-dsa",
+    "https://meet.google.com/lki-fgff-dirt",
+    "https://meet.google.com/lio-oiyh-hjk",
+    "https://meet.google.com/mls-klan-dfs",
+    "https://meet.google.com/euk-wqqs-cut",
+    "https://meet.google.com/euk-wqqs-cut",
+    "https://meet.google.com/ojhf-fdfd-dej",
+    "https://meet.google.com/dgg-wfdf-fdf",
+  ];
+  let meeting;
+  let appointmentData;
+  // ADDING USER MEETING DETAILS TO THE DATABASE
+   Meeting.create({
+    name: name,
+    emailAdd: emailAdd,
+    link: links[Math.floor(Math.random() * links.length)],
+    appointmentId: appointId,
+  })
+    .then((m) => {
+      meeting = m;
+      return Appointment.findByPk(appointId);
+    })
+    .catch((err) => console.log(err))
+    .then((ap) => {
+      appointmentData = ap;
+      //  UPDATING THE APPOINTMENT SLOT 
+      return Appointment.update(
+        { slot: ap.slot - 1 },
+        { where: { id: appointId } }
+      )
+    })
+    .catch((err) => console.log(err))
+    .then(() => {
+    
+      return res.status(200).json({meeting,appointmentData});
     })
     .catch((err) => {
       return res.status(500).json({
@@ -98,21 +126,18 @@ exports.getUsers = (req, res, next) => {
       });
     });
 };
-exports.getEditUser = (req, res, next) => {
 
-  const userid = req.params.userid;
-  // console.log(productId, editing);
-  User.findByPk(userid)
-    .then((users) => {
-      return res.status(200).json(users);
-    })
-    .catch((err) => {
-      return res.status(500).json({
-        status: false,
-        error: err,
-      });
-    });
-  
-
-
-};
+exports.getMeetings = (req, res, next) => {
+  Meeting.findAll({
+    include : [
+      { 
+        model: Appointment, 
+        required: true,
+       }
+    ]
+  })
+  .then((data)=>{
+    return res.status(200).json(data);
+  })
+  .catch(err=> console.log(err));
+}

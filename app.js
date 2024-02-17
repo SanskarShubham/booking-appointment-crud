@@ -12,24 +12,29 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const userRoutes = require('./routes/user');
+const userRoutes = require('./routes/appointment');
 
-const sequelize = require('./util/databse');
-
-
-// const User = require('./models/user');
-// User.sync().then().catch(err => console.log(err));
+const sequelize = require('./util/database');
+const Appointment = require('./models/appointments');
+const Meeting = require('./models/meetings');
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// routes
 app.use('/api', userRoutes);
 
+// Association
+Appointment.hasMany(Meeting);
+Meeting.belongsTo(Appointment);
 
-sequelize.sync().then((result) => {
+
+sequelize.sync()
+//  sequelize.sync({force:true}) 
+.then((result) => {
     app.listen(4000);
-}).catch(() => {
+}).catch((err) => {
     console.log(err);
 });
 

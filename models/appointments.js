@@ -1,23 +1,22 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-const Meeting = sequelize.define('meetings',{
+const Appointment = sequelize.define('appointments',{
     id:{
       type: Sequelize.INTEGER,
       autoIncrement:true,
       allowNull:false,
       primaryKey:true
     },
-    name: Sequelize.STRING,
-    emailAdd:{
-      type: Sequelize.STRING,
+    time:{
+      type: Sequelize.DataTypes.TIME
     },
-    link:{
-      type: Sequelize.STRING,
+    slot:{
+      type: Sequelize.INTEGER,
     }
   })
 
-  module.exports = Meeting;
+  module.exports = Appointment;
 
 
 
