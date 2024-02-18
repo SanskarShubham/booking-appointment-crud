@@ -42,14 +42,14 @@ exports.getAppointments = (req, res, next) => {
 
 exports.postDeleteMeeting = (req, res, next) => {
   const id = req.params.meetingId;
-  // let appointment;
+   let appointmentID;
   Meeting.findByPk(id)
     .then(mt => {
-   
+      
       return mt.destroy()
     })
-    //----
     .then((m) => {
+      appointmentID = m.appointmentId;
       return Appointment.findByPk(m.appointmentId);
     })
     .catch((err) => console.log(err))
@@ -62,14 +62,13 @@ exports.postDeleteMeeting = (req, res, next) => {
       )
     })
     .then((mt) => {
-
       return res.status(200).json({
         status: true,
-        data: mt,
+        data: appointmentID,
       });
     })
     .catch((err) => {
-      console.log(err)  ;
+      console.log(err);
       return res.status(500).json({
         status: false,
         error: err,
@@ -77,6 +76,7 @@ exports.postDeleteMeeting = (req, res, next) => {
     });
 
 };
+
 exports.postAddMeeting = (req, res, next) => {
   const name = req.body.name;
   const emailAdd = req.body.emailAdd;
@@ -95,7 +95,7 @@ exports.postAddMeeting = (req, res, next) => {
   let meeting;
   let appointmentData;
   // ADDING USER MEETING DETAILS TO THE DATABASE
-   Meeting.create({
+  Meeting.create({
     name: name,
     emailAdd: emailAdd,
     link: links[Math.floor(Math.random() * links.length)],
@@ -116,8 +116,8 @@ exports.postAddMeeting = (req, res, next) => {
     })
     .catch((err) => console.log(err))
     .then(() => {
-    
-      return res.status(200).json({meeting,appointmentData});
+
+      return res.status(200).json({ meeting, appointmentData });
     })
     .catch((err) => {
       return res.status(500).json({
@@ -129,15 +129,15 @@ exports.postAddMeeting = (req, res, next) => {
 
 exports.getMeetings = (req, res, next) => {
   Meeting.findAll({
-    include : [
-      { 
-        model: Appointment, 
+    include: [
+      {
+        model: Appointment,
         required: true,
-       }
+      }
     ]
   })
-  .then((data)=>{
-    return res.status(200).json(data);
-  })
-  .catch(err=> console.log(err));
+    .then((data) => {
+      return res.status(200).json(data);
+    })
+    .catch(err => console.log(err));
 }
